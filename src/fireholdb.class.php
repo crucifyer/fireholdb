@@ -21,11 +21,7 @@ class fireholdb
 		return "SELECT * FROM fireholdb WHERE ((".implode(") OR (", $where)."))";
 	}
 
-	public function findip($ip) {
-		$binds = [];
-		$stmt = $this->db->prepare($this->makeQuery($ip, $binds));
-		$stmt->execute($binds);
-		if(!($rows = $stmt->fetchAll(PDO::FETCH_OBJ))) return false;
+	private function resultSet($rows) {
 		$res = [];
 		foreach($rows as $row) {
 			$res[] = (object)[
@@ -35,6 +31,14 @@ class fireholdb
 			];
 		}
 		return $res;
+	}
+
+	public function findip($ip) {
+		$binds = [];
+		$stmt = $this->db->prepare($this->makeQuery($ip, $binds));
+		$stmt->execute($binds);
+		if(!($rows = $stmt->fetchAll(PDO::FETCH_OBJ))) return false;
+		return $this->resultSet($rows);
 	}
 
 	public function ipHasCategory($ip, $categories = ['abuse', 'anonymizers', 'attacks', 'malware', 'reputation', 'spam']) {
@@ -63,6 +67,14 @@ class fireholdb
 		return $res;
 	}
 
+	public function listIpset($ipset) {
+		$binds = ['ipset' => $ipset];
+		$stmt = $this->db->prepare("SELECT * FROM fireholdb WHERE ipset = :ipset ORDER BY fip");
+		$stmt->execute($binds);
+		if(!($rows = $stmt->fetchAll(PDO::FETCH_OBJ))) return false;
+		return $this->resultSet($rows);
+	}
+
 	public static function setmask($ip, $mask) {
 		$ip = inet_pton($ip);
 		$len = strlen($ip);
@@ -79,9 +91,10 @@ class fireholdb
 	}
 
 	public static function makeMaskSet($ip) {
-		$res = [[self::$binaryip ? inet_pton($ip) : unpack('H*', inet_pton($ip))[1], 32]];
-		for($i = 3; $i <= 31; $i ++) {
-			$res[] = [self::setmask($ip, $i), $i];
+		$ipmask = explode('/', $ip.'/32');
+		$res = [[self::$binaryip ? inet_pton($ipmask[0]) : unpack('H*', inet_pton($ipmask[0]))[1], $ipmask[1]]];
+		for($i = 3; $i < $ipmask[1]; $i ++) {
+			$res[] = [self::setmask($ipmask[0], $i), $i];
 		}
 		return $res;
 	}
