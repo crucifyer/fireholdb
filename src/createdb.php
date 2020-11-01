@@ -21,7 +21,10 @@ $updatestamp = file_exists('updatestamp') ? file_get_contents('updatestamp') : 0
 $lastmtime = 0;
 $db = new PDO('sqlite:'.__DIR__.'/fireholdb.sqlite');
 if(!$db->query("SELECT name FROM sqlite_master WHERE type = 'table' AND name='fireholdb'")->fetch()) {
-	$db->query(file_get_contents(__DIR__.'/schema.sql'));
+	$queries = preg_split('~;\s*~i', file_get_contents(__DIR__.'/schema.sql'), -1, PREG_SPLIT_NO_EMPTY);
+	foreach($queries as $query) {
+		$db->query($query);
+	}
 	$update = false;
 }
 
