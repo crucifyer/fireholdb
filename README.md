@@ -3,6 +3,11 @@ search firehol blocklist ip database with sqlite
 
 * firehol project https://github.com/firehol/blocklist-ipsets
 
+```shell script
+# first time
+$ php createdb.php /projects/firehol/blocklist-ipsets/
+```
+
 ```php
 <?php
  
