@@ -1,8 +1,10 @@
 name: firehol/blocklist-ipsets make sqlite db
 
 on:
-  schedule:
-    - cron: '0 */2 * * *'
+  push:
+    branches: [ main ]
+#  schedule:
+#    - cron: '0 */2 * * *'
 
 jobs:
   build:
