@@ -1,10 +1,8 @@
-name: PHP Composer
+name: firehol/blocklist-ipsets make sqlite db
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  schedule:
+    - cron: '0 */2 * * *'
 
 jobs:
   build:
@@ -30,8 +28,16 @@ jobs:
       if: steps.composer-cache.outputs.cache-hit != 'true'
       run: composer install --prefer-dist --no-progress --no-suggest
 
-    # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
-    # Docs: https://getcomposer.org/doc/articles/scripts.md
+    - name: Install requirements
+      run: |
+        composer global require knplabs/github-api php-http/guzzle6-adapter "^1.1" gitonomy/gitlib
 
-    # - name: Run test suite
-    #   run: composer run-script test
+    - name: Check firehol/blocklist-ipsets update
+      run: |
+        require_once 'vendor/autoload.php';
+
+        $github = new \Github\Client();
+        $github->authenticate('${{ github.token }}', '', \Github\Client::AUTH_ACCESS_TOKEN);
+        $commits = $github->api('repo')->commits()->all('firehol', 'blocklist-ipsets', ['sha' => 'master']);
+        echo '::set-output name=firehol-hash::', $commits[0]['sha'];
+      shell: php
