@@ -4,7 +4,7 @@ search firehol blocklist ip database with sqlite
 * firehol project https://github.com/firehol/blocklist-ipsets
 
 ```bash
-# first time
+# first time (or use released asset https://github.com/crucifyer/fireholdb/releases )
 $ php createdb.php /projects/firehol/blocklist-ipsets/
 ```
 
